@@ -3,23 +3,25 @@
 // Modifications by Michael Anderson
 
 #include "boost/thread.hpp"
+#include <deque>
 
 template<typename Data>
 class concurrent_queue
 {
 private:
-    std::queue<Data> the_queue;
+    std::deque<Data> the_queue;
     mutable boost::mutex the_mutex;
     boost::condition_variable the_condition_variable;
     bool is_canceled;
 
 public:
+    concurrent_queue() : the_queue(), the_mutex(), the_condition_variable(), is_canceled(false) {}
     struct Canceled{};
     void push(Data const& data)
     {
         boost::mutex::scoped_lock lock(the_mutex);
         if (is_canceled) throw Canceled();
-        the_queue.push(data);
+        the_queue.push_back(data);
         lock.unlock();
         the_condition_variable.notify_one();
     }
@@ -39,9 +41,9 @@ public:
         {
             return false;
         }
-        
+
         popped_value=the_queue.front();
-        the_queue.pop();
+        the_queue.pop_front();
         return true;
     }
 
@@ -54,9 +56,24 @@ public:
             the_condition_variable.wait(lock);
         }
         if (is_canceled) throw Canceled();
-        
+
         popped_value=the_queue.front();
-        the_queue.pop();
+        the_queue.pop_front();
+    }
+
+    std::deque<Data> wait_and_take_all()
+    {
+        boost::mutex::scoped_lock lock(the_mutex);
+
+        while(the_queue.empty() && !is_canceled)
+        {
+            the_condition_variable.wait(lock);
+        }
+        if (is_canceled) throw Canceled();
+
+        std::deque<Data> retval;
+        std::swap(retval, the_queue);
+        return retval;
     }
 
     void cancel()
