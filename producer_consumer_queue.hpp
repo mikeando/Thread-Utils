@@ -1,3 +1,7 @@
+// Based on code from http://www.justsoftwaresolutions.co.uk/threading/implementing-a-thread-safe-queue-using-condition-variables.html
+// Original version by Anthony Williams
+// Modifications by Michael Anderson
+
 #include "boost/thread.hpp"
 
 template<typename Data>
