@@ -1,3 +1,6 @@
+#ifndef ma_concurrent_queue_h
+#define ma_concurrent_queue_h
+
 // Based on code from http://www.justsoftwaresolutions.co.uk/threading/implementing-a-thread-safe-queue-using-condition-variables.html
 // Original version by Anthony Williams
 // Modifications by Michael Anderson
@@ -86,3 +89,5 @@ public:
     }
 
 };
+
+#endif
