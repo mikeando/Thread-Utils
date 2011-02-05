@@ -17,8 +17,14 @@ private:
     boost::condition_variable the_condition_variable;
     bool is_canceled;
 
+    //All threads that might be waiting on this queue
+    boost::thread_group * waiting_threads;
+
 public:
-    concurrent_queue() : the_queue(), the_mutex(), the_condition_variable(), is_canceled(false) {}
+    concurrent_queue( boost::thread_group * waiting_thread_group ) : the_queue(), the_mutex(), the_condition_variable(), is_canceled(false), waiting_threads(waiting_thread_group) {}
+    ~concurrent_queue() { cancel(); waiting_threads->join_all(); }
+
+
     struct Canceled{};
     void push(Data const& data)
     {
